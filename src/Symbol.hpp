@@ -5,7 +5,7 @@
 
 #include "AFn.hpp"
 
-class Symbol : public IMeta_inherit<Symbol>, public AFn, public Named, public Comparable {
+class Symbol : public IMeta_inherit<Symbol>, public AFn_inherit<Symbol>, public Named, public Comparable {
 	public:
 		virtual std::string toString(void) const;
 		virtual std::string getName() const;

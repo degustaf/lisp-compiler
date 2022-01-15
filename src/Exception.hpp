@@ -22,8 +22,7 @@ class ArityException : std::runtime_error {
 
 		ArityException(size_t actual, std::string name) :
 			std::runtime_error("Wrong number of args (" + std::to_string(actual) + ") passed to: " + name),
-			actual(actual),
-			name(name) {};
+			actual(actual), name(name) {};
 };
 
 #endif /* EXCEPTION_HPP */

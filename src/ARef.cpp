@@ -24,24 +24,24 @@ std::shared_ptr<IRef> ARef::removeWatch(std::shared_ptr<const lisp_object> key) 
 }
 
 void ARef::notifyWatches(std::shared_ptr<const lisp_object> oldval, std::shared_ptr<const lisp_object> newval) {
-	  std::shared_ptr<const IMap> ws = watches;
-	    if(ws->count() > 0) {
-			    for(std::shared_ptr<const ISeq> s = ws->seq(); s != NULL; s = s->next()) {
-					      std::shared_ptr<const IMapEntry> e = std::dynamic_pointer_cast<const IMapEntry>(s->first());
-						        std::shared_ptr<const IFn> f = std::dynamic_pointer_cast<const IFn>(e->val());
-								      if(f)
-										          f->invoke(e->key(), shared_from_this(), oldval, newval);
-									      }
-				  }
+	std::shared_ptr<const IMap> ws = watches;
+	if(ws->count() > 0) {
+		for(std::shared_ptr<const ISeq> s = ws->seq(); s != NULL; s = s->next()) {
+			std::shared_ptr<const IMapEntry> e = std::dynamic_pointer_cast<const IMapEntry>(s->first());
+			std::shared_ptr<const IFn> f = std::dynamic_pointer_cast<const IFn>(e->val());
+			if(f)
+				f->invoke(e->key(), shared_from_this(), oldval, newval);
+			}
+	}
 }
 
 void ARef::validate(std::shared_ptr<const IFn> f, std::shared_ptr<const lisp_object> val) {
-	  try {
-		      if(f && !(bool)f->invoke(val))
-				        throw std::runtime_error("Invalid reference state");
-			    } catch(std::runtime_error e) {
-					    throw e;
-						  } catch(std::exception &e) {
-							      throw std::runtime_error(std::string("Invalid reference state: ") + e.what());
-								    }
+	try {
+		if(f && !(bool)f->invoke(val))
+			throw std::runtime_error("Invalid reference state");
+	} catch(std::runtime_error e) {
+		throw e;
+	} catch(std::exception &e) {
+		throw std::runtime_error(std::string("Invalid reference state: ") + e.what());
+	}
 }

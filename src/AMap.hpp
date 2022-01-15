@@ -4,7 +4,7 @@
 #include "Interfaces.hpp"
 #include "AFn.hpp"
 
-class AMap : public AFn, public IMap_inherit<AMap> {
+class AMap : public AFn_inherit<AMap>, public IMap_inherit<AMap> {
 	public:
 		virtual std::string toString(void) const;
 	private:

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "Bool.hpp"
 #include "List.hpp"
 #include "Numbers.hpp"
 
@@ -104,4 +105,10 @@ size_t hashEq(std::shared_ptr<const lisp_object>) {
 std::shared_ptr<const ISeq> seq(std::shared_ptr<const lisp_object>) {
 	// TODO
 	return NULL;
+}
+
+bool isPrimitive(const std::type_info *t) {
+  if(t == NULL)
+    return false;
+	return (*t == typeid(Integer)) || (*t == typeid(Float)) || (*t == typeid(lisp_bool));
 }

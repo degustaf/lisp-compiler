@@ -5,7 +5,7 @@
 
 #include "AFn.hpp"
 
-class AVector : public IVector_inherit<AVector>, virtual public AFn {
+class AVector : public IVector_inherit<AVector>, public AFn_inherit<AVector> {
 	public:
 		virtual std::string toString(void) const;
 		virtual std::shared_ptr<const ISeq> seq(void) const;

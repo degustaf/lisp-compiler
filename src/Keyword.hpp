@@ -8,7 +8,7 @@
 
 #include "Symbol.hpp"
 
-class Keyword : public Named, public Comparable /* IFn, IHashEq */ {
+class Keyword : public Named, public Comparable, public lisp_object /* IFn, IHashEq */ {
 	public:
 		virtual std::string toString(void) const;
 		virtual std::string getName() const;

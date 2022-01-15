@@ -45,7 +45,7 @@ class LVector : virtual public AVector, public IMeta_inherit<LVector> {
 			IMeta_inherit(meta), cnt(cnt), shift(shift), root(root), tail(tail) {};
 };
 
-class TransientVector : virtual public AFn, virtual public ITransientVector, virtual public Counted {
+class TransientVector : public AFn_inherit<TransientVector>, virtual public ITransientVector, virtual public Counted {
 	public:
 		TransientVector(std::shared_ptr<const LVector> v): cnt(v->cnt), shift(v->shift),
 			root(editableRoot(v->root)), tail(v->tail) {};
@@ -58,6 +58,7 @@ class TransientVector : virtual public AFn, virtual public ITransientVector, vir
 		// virtual bool containsKey(const std::shared_ptr<const lisp_object>) const;
 		std::shared_ptr<ITransientCollection> conj(const std::shared_ptr<const lisp_object>);
 		std::shared_ptr<const ICollection> persistent(void);
+		virtual std::shared_ptr<const lisp_object> valAt(std::shared_ptr<const lisp_object> key) const;
 
 	private:
 		size_t cnt;

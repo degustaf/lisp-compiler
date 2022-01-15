@@ -1,0 +1,126 @@
+// ARef.cpp
+class ARef : public AReference, public IRef {
+  public:
+    ARef() : validator(NULL), watches(LMap::EMPTY) {};
+    ARef(std::shared_ptr<const IMap> meta) : AReference(meta), validator(NULL), watches(LMap::EMPTY) {};
+
+    virtual void setValidator(std::shared_ptr<const IFn>);
+    virtual std::shared_ptr<const IFn> getValidator();
+    virtual std::shared_ptr<const IMap> getWatches();
+    virtual std::shared_ptr<IRef> addWatch(std::shared_ptr<const lisp_object>, std::shared_ptr<const IFn>);
+    virtual std::shared_ptr<IRef> removeWatch(std::shared_ptr<const lisp_object>);
+    void notifyWatches(std::shared_ptr<const lisp_object> oldval, std::shared_ptr<const lisp_object> newval);
+protected:
+    std::shared_ptr<const IFn> validator;
+  private:
+    std::shared_ptr<const IMap> watches;
+    
+    void validate(std::shared_ptr<const IFn>, std::shared_ptr<const lisp_object>);
+};
+
+void ARef::setValidator(std::shared_ptr<const IFn> f) {
+  validate(f, deref());
+  validator = f;
+}
+
+std::shared_ptr<const IFn> ARef::getValidator() {
+  return validator;
+}
+
+std::shared_ptr<const IMap> ARef::getWatches() {
+  return watches;
+}
+
+std::shared_ptr<IRef> ARef::addWatch(std::shared_ptr<const lisp_object> key, std::shared_ptr<const IFn> callback) {
+  watches = std::dynamic_pointer_cast<const IMap>(watches->assoc(key, callback));
+  return std::dynamic_pointer_cast<IRef>(shared_from_this());
+}
+
+std::shared_ptr<IRef> ARef::removeWatch(std::shared_ptr<const lisp_object> key) {
+  watches = std::dynamic_pointer_cast<const IMap>(watches->without(key));
+  return std::dynamic_pointer_cast<IRef>(shared_from_this());
+}
+
+void ARef::notifyWatches(std::shared_ptr<const lisp_object> oldval, std::shared_ptr<const lisp_object> newval) {
+  std::shared_ptr<const IMap> ws = watches;
+  if(ws->count() > 0) {
+    for(std::shared_ptr<const ISeq> s = ws->seq(); s != NULL; s = s->next()) {
+      std::shared_ptr<const IMapEntry> e = std::dynamic_pointer_cast<const IMapEntry>(s->first());
+      std::shared_ptr<const IFn> f = std::dynamic_pointer_cast<const IFn>(e->val());
+      if(f)
+        f->invoke(e->key(), shared_from_this(), oldval, newval);
+    }
+  }
+}
+
+void ARef::validate(std::shared_ptr<const IFn> f, std::shared_ptr<const lisp_object> val) {
+  try {
+    if(f && !(bool)f->invoke(val))
+      throw std::runtime_error("Invalid reference state");
+  } catch(std::runtime_error e) {
+    throw e;
+  } catch(std::exception &e) {
+    throw std::runtime_error(std::string("Invalid reference state: ") + e.what());
+  }
+}
+
+
+// Namespace.cpp
+class Namespace : public AReference {
+  public:
+    const std::shared_ptr<const Symbol> name;
+    
+    virtual std::string toString(void) const;
+    virtual std::shared_ptr<const IMeta> with_meta(std::shared_ptr<const IMap>) const;
+    
+    static std::shared_ptr<Namespace> findOrCreate(std::shared_ptr<const Symbol> name);
+  private:
+    std::shared_ptr<const IMap> mappings;
+    std::shared_ptr<const IMap> aliases;
+
+    static std::map<std::shared_ptr<const Symbol>, std::shared_ptr<Namespace> > namespaces;
+
+    Namespace(std::shared_ptr<const Symbol> name) : AReference(name->meta()), name(name),
+        mappings(NULL), aliases(NULL) /* TODO mappings.set(RT.DEFAULT_IMPORTS); aliases.set(RT.map()); */ {};
+    
+};
+
+std::string Namespace::toString(void) const {
+  return name->toString();
+};
+
+std::shared_ptr<const IMeta> Namespace::with_meta(std::shared_ptr<const IMap> meta) const {
+  return std::dynamic_pointer_cast<const IMeta>(shared_from_this());
+}
+
+std::shared_ptr<Namespace> Namespace::findOrCreate(std::shared_ptr<const Symbol> name) {
+  try {
+    return namespaces.at(name);
+  } catch(std::out_of_range) {
+    std::shared_ptr<Namespace> newns = std::shared_ptr<Namespace>(new Namespace(name));
+    namespaces[name] = newns;
+    return newns;
+  }
+}
+
+std::map<std::shared_ptr<const Symbol>, std::shared_ptr<Namespace> > Namespace::namespaces = {};   // TODO
+
+
+class Var : public ARef /*, public IFn, public Settable*/ {
+  public:
+    virtual std::string toString(void) const;
+    virtual std::shared_ptr<const IMeta> with_meta(std::shared_ptr<const IMap>) const;
+    virtual std::shared_ptr<const lisp_object> deref();
+};
+
+std::string Var::toString(void) const {
+  // TODO
+}
+
+std::shared_ptr<const IMeta> Var::with_meta(std::shared_ptr<const IMap>) const {
+  // TODO
+}
+
+std::shared_ptr<const lisp_object> Var::deref() {
+  // TODO
+}

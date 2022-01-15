@@ -18,6 +18,7 @@ class LMap : public IMeta_inherit<LMap>, public virtual Associative, public AMap
 		virtual std::shared_ptr<const IMap> without(std::shared_ptr<const lisp_object>) const;
 		virtual std::shared_ptr<ITransientCollection> asTransient() const;
 		virtual bool containsKey(const std::shared_ptr<const lisp_object>) const;
+		virtual std::shared_ptr<const lisp_object> valAt(std::shared_ptr<const lisp_object> key) const;
 
 		static std::shared_ptr<const LMap> create(std::vector<std::shared_ptr<const lisp_object> >);
 
@@ -46,6 +47,7 @@ class TransientMap : public ITransientAssociative_inherit<TransientMap, ATransie
 		virtual size_t count() const;
 		virtual std::shared_ptr<const ICollection> persistent();
 		virtual std::shared_ptr<ITransientMap> without(std::shared_ptr<const lisp_object> key);
+		virtual std::shared_ptr<const lisp_object> valAt(std::shared_ptr<const lisp_object> key) const;
 	private:
 		size_t hashId;
 		size_t _count;

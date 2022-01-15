@@ -16,6 +16,7 @@ class lisp_object {
 	    bool operator==(std::shared_ptr<const lisp_object> o) const {return equals(o);};
 	    // lisp_object& operator=(lisp_object&&) = delete;
 		virtual size_t hashCode() const {return std::hash<const lisp_object*>()(this);};	// TODO
+		virtual ~lisp_object() = default;
 };
 
 class Reversible {
@@ -66,7 +67,7 @@ class Counted : public virtual lisp_object {
 
 class ILookup : public virtual lisp_object {
 	public:
-		// virtual std::shared_ptr<const lisp_object> valAt(std::shared_ptr<const lisp_object> key) const = 0;			// TODO
+		virtual std::shared_ptr<const lisp_object> valAt(std::shared_ptr<const lisp_object> key) const = 0;
 		// virtual std::shared_ptr<const lisp_object> valAt(std::shared_ptr<const lisp_object> key,						// TODO
 		//                                                  std::shared_ptr<const lisp_object> NotFound) const = 0;		// TODO
 };
@@ -148,6 +149,13 @@ class ICollection_inherit : public virtual ICollection, public Bases... {
 		virtual std::shared_ptr<const Derived> empty_impl(void) const = 0;
 };
 
+class ISet : public ICollection {
+  public:
+    virtual std::shared_ptr<const ISet> disjoin(std::shared_ptr<const lisp_object> key) const = 0;
+	  virtual bool contains(std::shared_ptr<const lisp_object> key) const = 0;
+	  virtual std::shared_ptr<const lisp_object> get(std::shared_ptr<const lisp_object> key) const = 0;
+};
+
 class IStack : public virtual ICollection {
 	public:
 		virtual std::shared_ptr<const lisp_object> peek(void) const = 0;
@@ -214,7 +222,7 @@ class IVector_inherit : public IVector, public Associative_inherit<Derived>, pub
 		virtual std::shared_ptr<const Derived> assocN_impl(size_t, const std::shared_ptr<const lisp_object>) const = 0;
 };
 
-class IMap : public virtual Associative {
+class IMap : public virtual Associative, public ILookup {
 	public:
 		virtual std::shared_ptr<const IMap> without(const std::shared_ptr<const lisp_object>) const = 0;	// Covariance	// TODO
 		// virtual std::shared_ptr<const IMap> assocEx(std::shared_ptr<const lisp_object>,									// TODO
@@ -287,6 +295,18 @@ class ITransientVector : public ITransientAssociative, public Indexed {
 	public:
 		// virtual std::shared_ptr<ITransientVector> assocN(size_t n, std::shared_ptr<const lisp_object> val) = 0;	// Covariance	// TODO
 		// virtual std::shared_ptr<ITransientVector> pop(void) = 0;		// Covariance								// TODO
+};
+
+
+class IPending {
+    // bool isRealized();
+};
+
+class IHashEq{
+  // int hasheq();
+};
+
+class IType : public lisp_object {
 };
 
 #endif /* INTERFACES_HPP */

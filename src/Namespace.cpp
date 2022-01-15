@@ -18,4 +18,4 @@ std::shared_ptr<Namespace> Namespace::findOrCreate(std::shared_ptr<const Symbol>
 	}
 }
 
-std::map<std::shared_ptr<const Symbol>, std::shared_ptr<Namespace> > Namespace::namespaces = {};
+std::map<std::shared_ptr<const Symbol>, std::shared_ptr<Namespace> > Namespace::namespaces = {};	// TODO

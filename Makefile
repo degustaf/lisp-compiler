@@ -115,7 +115,7 @@ unittest: $(BUILD_PATHS) $(RESULTS)
 	@exit $$(( `cat $(PATHR)*.txt | grep --count FAIL` + `cat $(PATHR)*.txt | grep --count 'Segmentation fault'` + `cat $(PATHR)*.txt | grep --count 'Assertion'` ))
 
 coverage.txt: $(OBJS) $(RESULTS)
-	gcov -o $(PATHO) $(PATHS)*.cpp $(PATHT)*.cpp 2> /dev/null | head -n -2 | grep 'Lines executed:[0-9][0-9]\.' -B 1 -A 1 > $@
+	gcov -o $(PATHO) $(PATHS)*.cpp $(PATHT)*.cpp 2> /dev/null | head -n -2 | egrep 'Lines executed:[0-9]?[0-9]\.' -B 1 -A 1 | grep 'src' -A 2 > $@
 
 functionaltest: $(PATHB)lisp.$(TARGET_EXTENSION) 
 

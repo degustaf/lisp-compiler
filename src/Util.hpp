@@ -13,3 +13,5 @@ size_t hash(std::shared_ptr<const lisp_object> o);
 size_t hashEq(std::shared_ptr<const lisp_object>);
 
 std::shared_ptr<const ISeq> seq(std::shared_ptr<const lisp_object>);
+
+bool isPrimitive(const std::type_info *t);

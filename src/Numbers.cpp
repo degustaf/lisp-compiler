@@ -27,12 +27,9 @@ Integer::operator double() const {
 
 
 std::string Float::toString(void) const {
-	if(str.empty()) {
-		std::stringstream ss;
-		ss << val;
-		return ss.str();
-	}
-	return str;
+	std::stringstream ss;
+	ss << val;
+	return ss.str();
 }
 
 Float::operator long() const {
@@ -483,17 +480,6 @@ int BigInt::bitLength() {
 	return magBitLength;
 }
 
-typedef enum {
-	ROUND_UP,
-	ROUND_DOWN,
-	ROUND_CEILING,
-	ROUND_FLOOR,
-	ROUND_HALF_UP,
-	ROUND_HALF_DOWN,
-	ROUND_HALF_EVEN,
-	ROUND_UNNECESSARY,
-} roundingMode;
-
 
 // BigDecimal
 static const long LONG_TEN_POWERS_TABLE[] = {
@@ -542,83 +528,6 @@ static const long THRESHOLDS_TABLE[] = {
 static const size_t THRESHOLDS_TABLE_COUNT = sizeof(THRESHOLDS_TABLE)/sizeof(THRESHOLDS_TABLE[0]);
 static_assert(LONG_TEN_POWERS_TABLE_COUNT == THRESHOLDS_TABLE_COUNT, "LONG_TEN_POWERS_TABLE and THRESHOLDS_TABLE are different sizes.");
 static_assert(sizeof(long) <= 8, "LONG_TEN_POWERS_TABLE and THRESHOLDS_TABLE are not large enough.  They are only designed for up to 64 bit longs.");
-
-class BigDecimal : public Number {
-	public:
-		BigDecimal(double x);
-		BigDecimal(BigInt x) : intVal((intCompact != INFLATED) ? BigInt() : x),
-			intCompact(compactValFor(x)) {};
-		BigDecimal(BigInt x, int scale) : BigDecimal(x) {this->scale = scale;};
-
-		static BigDecimal valueOf(long val);
-		static BigDecimal valueOf(long unscaledVal, int scale);
-
-		explicit virtual operator long() const;
-		explicit virtual operator double() const;
-		// virtual operator std::string() const;
-		std::string toString() const;
-
-		bool operator==(const BigDecimal &y) const;
-		bool equiv(const BigDecimal &y) const;
-		BigDecimal operator+(const BigDecimal &y) const;
-		BigDecimal operator-() const;
-		BigDecimal operator-(const BigDecimal &y) const;
-		BigDecimal operator*(const BigDecimal &y) const;
-		// BigDecimal operator*(const long &y) const;
-		BigDecimal operator/(BigDecimal &y);
-		BigDecimal operator%(BigDecimal &y);
-		BigDecimal divideToIntegralValue(BigDecimal &y);
-		BigDecimal divide(BigDecimal &y, int mcPrecision, roundingMode rm);
-		bool operator<(BigDecimal &y);
-		bool operator<=(BigDecimal &y);
-		bool operator>(BigDecimal &y);
-		bool operator>=(BigDecimal &y);
-		BigDecimal abs() const;
-
-		BigInt toBigInt() const;
-
-		int signum() const;
-		int getPrecision() const;
-		int getScale() const;
-		// int unscaledValue();
-
-		static const BigDecimal ONE;
-	private:
-		BigDecimal(BigInt intVal, long val, int scale, int prec) :
-		intVal(intVal), intCompact(val), scale(scale), precision(prec) { };
-
-		BigDecimal() = default;
-
-		BigDecimal setScale(int newscale, roundingMode rm) const;
-		BigInt inflate() const;
-		int checkScale(long val) const;
-		BigInt bigMultiplyPowerTen(int n) const;
-		BigDecimal stripZerosToMatchScale(long preferredScale);
-		int compareMagnitude(const BigDecimal &val) const;
-		int cmp(const BigDecimal &y) const;
-
-		BigInt intVal;
-		long intCompact;
-		int scale;
-		int precision;
-
-		static long longMultiplyPowerTen(long val, int n);
-		static BigInt bigTenToThe(int n);
-		static BigDecimal divideAndRound(long ldividend, const BigInt bdividend, long ldivisor, const BigInt bdivisor,
-		int scale, roundingMode rm, int preferredScale);
-		static int longCompareMagnitude(long x, long y);
-		static long compactValFor(BigInt b);
-		static int longDigitLength(long x);
-		static int bigDigitLength(BigInt b);
-		static int saturateLong(long s);
-		static BigDecimal doRound(BigDecimal &d, int mcPrecision, roundingMode rm);
-
-		static const long INFLATED = LONG_MIN;
-		static const std::vector<BigDecimal> zeroThroughTen;
-		static const std::vector<BigDecimal> ZERO_SCALED_BY;
-
-		friend BigDecimal BigInt::toBigDecimal(int sign, int scale) const;
-};
 
 const std::vector<BigDecimal> BigDecimal::zeroThroughTen({
 	BigDecimal(BigInt::ZERO,  0,  0, 1),
@@ -871,7 +780,7 @@ BigDecimal BigDecimal::operator*(const BigDecimal &y) const {
 	return BigDecimal(rb, INFLATED, productScale, 0);
 }
 
-BigDecimal BigDecimal::operator/(BigDecimal &divisor) {
+BigDecimal BigDecimal::operator/(const BigDecimal &divisor) const {
 	// Handle zero cases first.
 	if (divisor.signum() == 0) {   // x/0
 		if (signum() == 0)    // 0/0
@@ -900,12 +809,12 @@ BigDecimal BigDecimal::operator/(BigDecimal &divisor) {
 	return quotient;
 }
 
-BigDecimal BigDecimal::operator%(BigDecimal &y) {
+BigDecimal BigDecimal::operator%(const BigDecimal &y) const {
 	BigDecimal quotient = divideToIntegralValue(y);
 	return *this - (quotient * y);
 }
 
-BigDecimal BigDecimal::divideToIntegralValue(BigDecimal &y) {
+BigDecimal BigDecimal::divideToIntegralValue(const BigDecimal &y) const {
 	int preferredScale = saturateLong((long)scale - y.scale);
 	if (compareMagnitude(y) < 0) {
 		// much faster when this << divisor
@@ -926,19 +835,19 @@ BigDecimal BigDecimal::divideToIntegralValue(BigDecimal &y) {
 	return quotient;
 }
 
-bool BigDecimal::operator<(BigDecimal &y) {
+bool BigDecimal::operator<(const BigDecimal &y) const {
 	return cmp(y) < 0;
 }
 
-bool BigDecimal::operator<=(BigDecimal &y) {
+bool BigDecimal::operator<=(const BigDecimal &y) const {
 	return cmp(y) <= 0;
 }
 
-bool BigDecimal::operator>(BigDecimal &y) {
+bool BigDecimal::operator>(const BigDecimal &y) const {
 	return cmp(y) > 0;
 }
 
-bool BigDecimal::operator>=(BigDecimal &y) {
+bool BigDecimal::operator>=(const BigDecimal &y) const {
 	return cmp(y) >= 0;
 }
 
@@ -1041,7 +950,7 @@ BigDecimal BigDecimal::stripZerosToMatchScale(long preferredScale) {
 	return *this;
 }
 
-BigDecimal BigDecimal::divide(BigDecimal &y, int mcPrecision, roundingMode rm) {
+BigDecimal BigDecimal::divide(const BigDecimal &y, int mcPrecision, roundingMode rm) const {
 	if (mcPrecision == 0)
 		return *this / y;
 	long preferredScale = (long)scale - y.scale;
@@ -1296,21 +1205,7 @@ BigDecimal BigDecimal::doRound(BigDecimal &d, int mcPrecision, roundingMode rm) 
 
 
 // Ratio
-class Ratio : public Number {
-	public:
-		Ratio(BigInt numerator, BigInt denominator) : numerator(numerator), denominator(denominator) {};
-		const BigInt numerator;
-		const BigInt denominator;
-
-		virtual operator long();
-		virtual operator double() const;
-		virtual operator std::string() const;
-		BigInt toBigInt() const;
-		BigDecimal toBigDecimal() const;
-		BigDecimal toBigDecimal(int precision, roundingMode rm) const;
-};
-
-Ratio::operator long() {
+Ratio::operator long() const {
 	return (long)toBigInt();
 }
 
@@ -1318,7 +1213,8 @@ Ratio::operator double() const {
 	return (double)toBigDecimal(16, ROUND_HALF_EVEN);
 }
 
-Ratio::operator std::string() const {
+// Ratio::operator std::string() const {
+std::string Ratio::toString() const {
 	return numerator.toString() + "/" + denominator.toString();
 }
 
